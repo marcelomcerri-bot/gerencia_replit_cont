@@ -57,11 +57,10 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
     this.nameLabel = scene.add.text(x, y - 36, def.name, {
       fontFamily: "'Space Grotesk', sans-serif",
       fontSize: '10px',
-      fontWeight: 'bold',
+      fontStyle: 'bold',
       color: nameCol,
       stroke: '#000000',
       strokeThickness: 2,
-      resolution: 2,
     }).setOrigin(0.5, 1).setDepth(20);
 
     this.interactionBubble = scene.add.text(x, y - 64, '', {
@@ -87,11 +86,10 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
     this.exclamationMark = scene.add.text(x, y - 56, '!', {
       fontFamily: "'Space Grotesk', sans-serif",
       fontSize: '16px',
-      fontWeight: 'bold',
+      fontStyle: 'bold',
       color: '#fbbf24',
       stroke: '#b45309',
       strokeThickness: 3,
-      resolution: 2,
     }).setOrigin(0.5, 1).setDepth(21).setVisible(false);
   }
 

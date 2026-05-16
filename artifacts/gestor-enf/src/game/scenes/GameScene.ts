@@ -1739,14 +1739,11 @@ export class GameScene extends Phaser.Scene {
       this.add.text(x, y + 16, lbl.text, {
         fontFamily: "'Space Grotesk', sans-serif",
         fontSize: '11px',
-        fontWeight: '900',
+        fontStyle: 'bold',
         color: '#94a3b8',
         stroke: '#f8fafc',
         strokeThickness: 3,
-        letterSpacing: 2,
-        resolution: 2,
-        alpha: 0.6
-      }).setOrigin(0.5, 0.5).setDepth(0.6);
+      }).setOrigin(0.5, 0.5).setDepth(0.6).setAlpha(0.6);
     }
   }
 

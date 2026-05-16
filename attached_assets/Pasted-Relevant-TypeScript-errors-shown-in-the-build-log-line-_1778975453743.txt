@@ -1,0 +1,52 @@
+Relevant TypeScript errors shown in the build log: line 84, line 85 and line 86 report TS2353 ("Object literal may only specify ..."). The typecheck for the workspace package failed and tsc exited non‑zero, causing the build to fail (line 87, line 89-line 91, line 97, line 111).
+The failures occur inside these files in the repo:
+artifacts/gestor-enf/src/game/objects/NPC.ts — around lines 60 and 90 (see file: https://github.com/marcelomcerri-bot/gerencia_replit_cont/blob/main/artifacts/gestor-enf/src/game/objects/NPC.ts#L60 and https://github.com/marcelomcerri-bot/gerencia_replit_cont/blob/main/artifacts/gestor-enf/src/game/objects/NPC.ts#L90)
+artifacts/gestor-enf/src/game/scenes/GameScene.ts — around line 1742 (see file: https://github.com/marcelomcerri-bot/gerencia_replit_cont/blob/main/artifacts/gestor-enf/src/game/scenes/GameScene.ts#L1742)
+Cause
+
+TS2353 is the TypeScript "excess property check" error: an object literal includes property(ies) that are not allowed by the target type/interface. In short, code at those lines is creating or assigning an object literal whose keys do not match the expected type, and the TypeScript compiler is refusing to compile.
+Solution
+
+Open the three locations indicated and inspect the object literals:
+
+artifacts/gestor-enf/src/game/objects/NPC.ts at the code near lines 60 and 90: https://github.com/marcelomcerri-bot/gerencia_replit_cont/blob/main/artifacts/gestor-enf/src/game/objects/NPC.ts#L60-L95
+artifacts/gestor-enf/src/game/scenes/GameScene.ts at the code near line 1742: https://github.com/marcelomcerri-bot/gerencia_replit_cont/blob/main/artifacts/gestor-enf/src/game/scenes/GameScene.ts#L1740-L1750
+Fix options (choose the one that best matches your intent):
+
+Option A — Make the object match the declared type (recommended)
+
+Change the object literal so it only contains properties defined on the target interface/type.
+Example: if the expected type is NPCConfig { x:number; y:number }, change:
+// before (extraProp not on type)
+const cfg = { x: 0, y: 0, extraProp: 10 };
+to
+// after
+const cfg = { x: 0, y: 0 };
+// or, if extraProp is needed, add it to the type (see Option B)
+Option B — Extend the type to include the property(ies)
+
+If the extra properties are intended, add them to the target interface/type definition.
+Example:
+// add missing field to interface
+interface NPCConfig {
+  x: number;
+  y: number;
+  extraProp?: number; // <--- add this
+}
+Option C — Narrowly bypass the excess property check (use sparingly)
+
+If you must keep the object literal as-is and cannot change the declared type, you can assert the type:
+const cfg = { x: 0, y: 0, extraProp: 10 } as unknown as NPCConfig;
+or assign via a temporary variable to avoid direct excess check:
+const tmp = { x: 0, y: 0, extraProp: 10 };
+const cfg: NPCConfig = tmp; // no excess check here
+Note: this silences the type system and should be used only when you are sure the runtime shape is acceptable.
+After making the code changes:
+
+Run the same local command that fails in CI to reproduce and verify the fix:
+From repo root: npm run typecheck (or npm run build) — the build log shows the failing script used tsc --build for the workspace.
+Commit and push the changes, then re-run the Netlify build.
+Why this will fix the build
+
+The build fails because the TypeScript compiler (tsc) fails with errors (exit code 2). Fixing the type mismatches so tsc succeeds will allow the build to proceed.
+If you want, paste the object literals from the three locations here and I can show the exact minimal change to resolve each TS2353 error.
