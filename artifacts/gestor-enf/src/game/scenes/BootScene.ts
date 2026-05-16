@@ -144,6 +144,7 @@ export class BootScene extends Phaser.Scene {
     void loadLabel;
 
     const base = (import.meta as any).env?.BASE_URL || '/';
+    this.load.image('huap_pixelart', base + 'huap_bg.png');
   }
 
   create() {
