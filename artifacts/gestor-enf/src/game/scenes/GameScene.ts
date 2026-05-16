@@ -160,7 +160,12 @@ export class GameScene extends Phaser.Scene {
 
         // Front-facing 3D wall illusion
         const isWall = tid === TILE_ID.WALL;
-        const hasFloorBelow = isWall && r < MAP_ROWS - 1 && this.mapData[r+1][c] !== TILE_ID.WALL && this.mapData[r+1][c] !== TILE_ID.GARDEN;
+        // Only draw front face when a room (non-wall, non-garden, non-corridor) is below.
+        // Skipping CORRIDOR prevents large beige blocks from flooding the corridor walkways.
+        const hasFloorBelow = isWall && r < MAP_ROWS - 1 &&
+          this.mapData[r+1][c] !== TILE_ID.WALL &&
+          this.mapData[r+1][c] !== TILE_ID.GARDEN &&
+          this.mapData[r+1][c] !== TILE_ID.CORRIDOR;
         const isHorizontalIntersection = isWall && r < MAP_ROWS - 1 && this.mapData[r+1][c] === TILE_ID.WALL &&
                                          c > 0 && c < MAP_COLS - 1 && 
                                          this.mapData[r][c-1] === TILE_ID.WALL && this.mapData[r][c+1] === TILE_ID.WALL;
@@ -398,50 +403,60 @@ export class GameScene extends Phaser.Scene {
 
     // ── MATERNITY — maternity beds + bassinets + soft decor
     else if (tid === TILE_ID.MATERNITY) {
-      // Split into Maternity Ward (left) and Neonatal ICU (right)
-      const splitC = Math.floor((c1 + c2) / 2);
-      
-      // Left side: Maternity Ward
-      let bedCol = c1 + 2;
-      while (bedCol < splitC - 1) {
-        const bx = bedCol * TILE_SIZE, by = (r1 + 1) * TILE_SIZE;
-        // Construct Island
-        this.drawBiombo(g, bx + 36, by - 12);
+      const TS = TILE_SIZE;
+      // Split into Maternity Ward (left ~55%) and Neonatal ICU (right ~45%)
+      const splitC = c1 + Math.floor((c2 - c1) * 0.55);
+
+      // ── LEFT: Maternity Ward — two rows of beds
+      // Row 1 (top): beds from c1+1 stepping every 3 tiles
+      for (let bc = c1 + 1; bc + 1 <= splitC - 2; bc += 3) {
+        const bx = bc * TS, by = (r1 + 1) * TS;
         this.drawMaternityBed(g, bx, by);
-        this.drawBassinet(g, bx + 30, by + 18);
-        this.drawWaitingChairs(g, bx - 16, by + 16); // companion chair
-        
-        this.interactionPoints.push({ x: bx, y: by, type: 'inspect' });
-        bedCol += 4;
+        this.drawBassinet(g, bx + 32, by + 10);
+        this.drawWaitingChairs(g, bx, by + 48);   // companion chair below bed
+        this.interactionPoints.push({ x: bx + 14, y: by + 22, type: 'inspect' });
       }
-      
-      // Mother resting area
-      this.drawTherapySofa(g, (c1 + 1) * TILE_SIZE, (r2 - 2) * TILE_SIZE);
-      this.drawBreastPumpStation(g, (c1 + 4) * TILE_SIZE, (r2 - 2) * TILE_SIZE);
-      
-      // Right side: Neonatal ICU
-      let incCol = splitC + 2;
-      while (incCol < c2 - 2) {
-        const bx = incCol * TILE_SIZE, by = (r1 + 1) * TILE_SIZE;
-        // Construct NICU Island
+      // Row 2 (mid): stagger offset by 1.5 tiles
+      for (let bc = c1 + 1; bc + 1 <= splitC - 2; bc += 3) {
+        const bx = bc * TS, by = (r1 + 5) * TS;
+        this.drawMaternityBed(g, bx, by);
+        this.drawBassinet(g, bx + 32, by + 10);
+        this.drawWaitingChairs(g, bx, by + 48);
+        this.interactionPoints.push({ x: bx + 14, y: by + 22, type: 'inspect' });
+      }
+
+      // Mother resting corner (bottom-left)
+      this.drawTherapySofa(g, (c1 + 1) * TS, (r2 - 3) * TS);
+      this.drawBreastPumpStation(g, (c1 + 1) * TS + 42, (r2 - 3) * TS);
+      this.interactionPoints.push({ x: (c1 + 1) * TS + 18, y: (r2 - 3) * TS + 9, type: 'rest' });
+
+      // ── DIVIDER: vertical biombo column at splitC
+      for (let r = r1 + 1; r <= r2 - 3; r += 1) {
+        if ((r - r1) % 2 === 1) this.drawBiombo(g, splitC * TS, r * TS - 4);
+      }
+
+      // Nursing desk spanning the divider (bottom-center)
+      this.drawNursingDesk(g, (splitC - 1) * TS, (r2 - 2) * TS);
+      this.interactionPoints.push({ x: splitC * TS, y: (r2 - 2) * TS, type: 'work' });
+
+      // ── RIGHT: Neonatal ICU — neat grid of incubators
+      // Row 1: incubators along the top
+      for (let ic = splitC + 1; ic + 1 <= c2 - 2; ic += 3) {
+        const bx = ic * TS, by = (r1 + 1) * TS;
         this.drawIncubator(g, bx, by);
-        this.drawIVPole(g, bx - 10, by);
-        this.drawCabinet(g, bx + 26, by); // med supply
-        
-        this.drawIncubator(g, bx, by + 64);
-        this.drawIVPole(g, bx - 10, by + 64);
-        
-        this.interactionPoints.push({ x: bx, y: by, type: 'inspect' });
-        incCol += 4;
+        this.drawIVPole(g, bx - 12, by + 4);
+        this.interactionPoints.push({ x: bx + 12, y: by + 12, type: 'inspect' });
       }
-      
-      this.drawNursingDesk(g, splitC * TILE_SIZE + 16, (r2 - 3) * TILE_SIZE);
-      this.interactionPoints.push({ x: splitC * TILE_SIZE + 16, y: (r2 - 3) * TILE_SIZE, type: 'work' });
-      
-      // Divide the room with a biombo
-      for(let r = r1+1; r < r2; r++) {
-         if (r % 2 === 0) this.drawBiombo(g, splitC * TILE_SIZE, r * TILE_SIZE);
+      // Row 2: second incubator row below
+      for (let ic = splitC + 1; ic + 1 <= c2 - 2; ic += 3) {
+        const bx = ic * TS, by = (r1 + 5) * TS;
+        this.drawIncubator(g, bx, by);
+        this.drawIVPole(g, bx - 12, by + 4);
+        this.interactionPoints.push({ x: bx + 12, y: by + 12, type: 'inspect' });
       }
+      // Med supply cabinet between rows on the far right
+      this.drawCabinet(g, (c2 - 2) * TS, (r1 + 2) * TS);
+      this.drawCabinet(g, (c2 - 2) * TS, (r1 + 5) * TS);
     }
 
     // ── EMERGENCY — crash carts, trauma stretchers, defibrillators
@@ -632,43 +647,59 @@ export class GameScene extends Phaser.Scene {
 
     // ── OUTPATIENT — exam tables, doctor desk
     else if (tid === TILE_ID.OUTPATIENT) {
-      // Waiting area near the door (bottom left)
-      this.drawReceptionCounter(g, (c1 + 1) * TILE_SIZE, (r2 - 2) * TILE_SIZE, 2);
-      this.drawWaitingChairs(g, (c1 + 4) * TILE_SIZE, (r2 - 2) * TILE_SIZE);
-      this.drawWaitingChairs(g, (c1 + 4) * TILE_SIZE, (r2 - 3) * TILE_SIZE);
-      this.drawPottedPlant(g, (c1 + 5) * TILE_SIZE + 16, (r2 - 3) * TILE_SIZE);
-      
-      // Mini consulting rooms along the top and right
+      const TS = TILE_SIZE;
+      const topY = (r1 + 1) * TS;
+      const bottomY = (r2 - 1) * TS;
+
+      // ── Consultation rooms along the top wall (step 5 tiles for breathing room)
       let roomCol = c1 + 1;
       let roomCount = 0;
-      while (roomCol < c2 - 2 && roomCount < 3) {
-         // Create a cubicle
-         const bx = roomCol * TILE_SIZE;
-         const by = (r1 + 1) * TILE_SIZE;
-         
-         // Biombo to separate
-         if (roomCount > 0) {
-            this.drawBiombo(g, bx - 16, by);
-            this.drawBiombo(g, bx - 16, by + 32);
-            this.drawBiombo(g, bx - 16, by + 64);
-         }
-         
-         // Cubicle Island
-         // Doctor Desk
-         this.drawOfficeDesk(g, bx, by + 32);
-         this.interactionPoints.push({ x: bx, y: by + 32, type: 'work' });
-         // Exam Table behind desk
-         this.drawExamTable(g, bx + 48, by + 16);
-         this.interactionPoints.push({ x: bx + 48, y: by + 16, type: 'inspect' });
-         // Doctor chair
-         this.drawWaitingChairs(g, bx + 16, by + 64); // scales as 1-2 chairs
-         // Hand sanitizer & trash
-         this.drawHandSanitizer(g, bx + 32, by);
-         this.drawTrashCan(g, bx + 32, by + 84);
+      while (roomCol + 3 <= c2 - 1 && roomCount < 2) {
+        const bx = roomCol * TS;
+        const by = topY;
 
-         roomCol += 4;
-         roomCount++;
+        // Biombo divider before each room (except the first)
+        if (roomCount > 0) {
+          const divX = bx - TS;
+          this.drawBiombo(g, divX, by);
+          this.drawBiombo(g, divX, by + 28);
+          this.drawBiombo(g, divX, by + 56);
+          this.drawBiombo(g, divX, by + 84);
+        }
+
+        // Exam table against the north wall
+        this.drawExamTable(g, bx + 2, by + 4);
+        this.interactionPoints.push({ x: bx + 16, y: by + 20, type: 'inspect' });
+
+        // Doctor desk below the exam table
+        this.drawOfficeDesk(g, bx, by + 44);
+        this.interactionPoints.push({ x: bx + 16, y: by + 56, type: 'work' });
+
+        // Patient chair to the right of the desk
+        this.drawWaitingChairs(g, bx + 36, by + 48);
+
+        // Hand sanitizer on the top wall edge
+        this.drawHandSanitizer(g, bx + 14, by);
+
+        roomCol += 5;
+        roomCount++;
       }
+
+      // ── Waiting / reception area at the bottom
+      // Reception counter on the left
+      this.drawReceptionCounter(g, (c1 + 1) * TS, (r2 - 3) * TS, 3);
+      this.interactionPoints.push({ x: (c1 + 2) * TS, y: (r2 - 3) * TS, type: 'work' });
+
+      // Two rows of waiting chairs filling the rest of the bottom width
+      for (let wc = c1 + 5; wc + 1 <= c2 - 1; wc += 2) {
+        this.drawWaitingChairs(g, wc * TS, (r2 - 3) * TS);
+        this.interactionPoints.push({ x: wc * TS + 8, y: (r2 - 3) * TS, type: 'sit' });
+        this.drawWaitingChairs(g, wc * TS, (r2 - 2) * TS);
+        this.interactionPoints.push({ x: wc * TS + 8, y: (r2 - 2) * TS, type: 'sit' });
+      }
+
+      // Potted plant in the bottom-right corner
+      this.drawPottedPlant(g, (c2 - 2) * TS, (r2 - 4) * TS);
     }
 
     // ── PSYCH — therapy sofas, plants, calm decor
