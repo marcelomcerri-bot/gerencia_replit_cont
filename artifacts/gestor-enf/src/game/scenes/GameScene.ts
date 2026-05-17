@@ -160,12 +160,17 @@ export class GameScene extends Phaser.Scene {
 
         // Front-facing 3D wall illusion
         const isWall = tid === TILE_ID.WALL;
-        // Only draw front face when a room (non-wall, non-garden, non-corridor) is below.
-        // Skipping CORRIDOR prevents large beige blocks from flooding the corridor walkways.
-        const hasFloorBelow = isWall && r < MAP_ROWS - 1 &&
-          this.mapData[r+1][c] !== TILE_ID.WALL &&
-          this.mapData[r+1][c] !== TILE_ID.GARDEN &&
-          this.mapData[r+1][c] !== TILE_ID.CORRIDOR;
+        // Draw the face for any non-wall, non-garden tile below — INCLUDING interior
+        // hospital corridors (which get the nice teal wainscoting stripe).
+        // EXCEPTION: skip courtyard/garden-zone corridors (wall at row 42 → garden
+        // corridor at rows 43-47) because the face looks like a gray block on the
+        // green garden background.
+        const belowTid = r < MAP_ROWS - 1 ? this.mapData[r+1][c] : TILE_ID.WALL;
+        const twobelowTid = r < MAP_ROWS - 2 ? this.mapData[r+2][c] : TILE_ID.WALL;
+        const hasFloorBelow = isWall &&
+          belowTid !== TILE_ID.WALL &&
+          belowTid !== TILE_ID.GARDEN &&
+          !(belowTid === TILE_ID.CORRIDOR && twobelowTid === TILE_ID.GARDEN);
         const isHorizontalIntersection = isWall && r < MAP_ROWS - 1 && this.mapData[r+1][c] === TILE_ID.WALL &&
                                          c > 0 && c < MAP_COLS - 1 && 
                                          this.mapData[r][c-1] === TILE_ID.WALL && this.mapData[r][c+1] === TILE_ID.WALL;
