@@ -66,9 +66,19 @@ export class GameScene extends Phaser.Scene {
 
     // DOM-level ESC listener — captures ESC reliably even without canvas focus
     this._escDomListener = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !this.scene.isPaused()) {
-        e.preventDefault();
-        this.pauseGame();
+      // Guard: listener may fire after scene/scene-plugin is destroyed during HMR
+      if (!this._escDomListener) return;
+      try {
+        if (e.key === 'Escape' && !this.scene.isPaused()) {
+          e.preventDefault();
+          this.pauseGame();
+        }
+      } catch {
+        // Scene already destroyed — remove the stale listener
+        if (this._escDomListener) {
+          document.removeEventListener('keydown', this._escDomListener);
+          this._escDomListener = null;
+        }
       }
     };
     document.addEventListener('keydown', this._escDomListener);
