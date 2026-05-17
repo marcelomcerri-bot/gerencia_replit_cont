@@ -1795,6 +1795,7 @@ export class GameScene extends Phaser.Scene {
       if (this.propColliders && def.role !== 'patient') this.physics.add.collider(npc, this.propColliders);
       if (def.role === 'patient') {
         npc.setVisible(false); // Rendered in the bed graphic instead
+        npc.hideUI();          // Also hide floating name/shadow/icons
       }
       npc.updateMissionStatus(this.state);
       this.npcs.push(npc);

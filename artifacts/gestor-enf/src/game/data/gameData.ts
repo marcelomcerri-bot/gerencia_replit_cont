@@ -2043,9 +2043,9 @@ export const NPC_DEFS: NPCDef[] = [
     title: 'Paciente (UTI)',
     role: 'patient',
     spriteKey: 'npc_pat_old_m',
-    startCol: 43, startRow: 15,
+    startCol: 43, startRow: 21,
     bodyColor: 0xe0f2fe, coatColor: 0x95a5a6, hairColor: 0xd3d3d3, skinColor: 0xf5c5a3,
-    patrolPoints: [{ col: 43, row: 15 }],  // Doesn't move, in bed
+    patrolPoints: [{ col: 43, row: 21 }],  // Doesn't move, in bed (ICU row 17-26)
     schedule: [{ hour: 0, col: 43, row: 15 }],
     missionIds: [],
     dialogues: [{
@@ -2264,9 +2264,9 @@ export const NPC_DEFS: NPCDef[] = [
     title: 'Técnico Plantonista',
     role: 'technician',
     spriteKey: 'npc_tech_m', // Since others are generic right now
-    startCol: 65, startRow: 24,
+    startCol: 60, startRow: 20,
     bodyColor: 0xffffff, coatColor: 0x86efac, hairColor: 0x1c1917, skinColor: 0xd2b48c,
-    patrolPoints: [{ col: 65, row: 24 }, { col: 65, row: 26 }, { col: 68, row: 26 }],
+    patrolPoints: [{ col: 60, row: 20 }, { col: 57, row: 22 }, { col: 63, row: 24 }],
     schedule: [{ hour: 6, col: 65, row: 24 }],
     missionIds: [],
     dialogues: [{
@@ -2281,10 +2281,10 @@ export const NPC_DEFS: NPCDef[] = [
     title: 'Auxiliar de Limpeza',
     role: 'other',
     spriteKey: 'npc_cleaner',
-    startCol: 20, startRow: 2,
+    startCol: 20, startRow: 14,
     bodyColor: 0x60a5fa, coatColor: 0x60a5fa, hairColor: 0x4b5563, skinColor: 0x6a4e42,
-    patrolPoints: [{ col: 20, row: 2 }, { col: 40, row: 2 }, { col: 60, row: 2 }],
-    schedule: [{ hour: 6, col: 20, row: 2 }],
+    patrolPoints: [{ col: 10, row: 14 }, { col: 40, row: 14 }, { col: 60, row: 15 }, { col: 10, row: 15 }],
+    schedule: [{ hour: 6, col: 20, row: 14 }],
     missionIds: [],
     dialogues: [{
       id: 'idle',
@@ -2437,7 +2437,7 @@ export const NPC_DEFS: NPCDef[] = [
     startCol: 68, startRow: 8,
     bodyColor: 0x95a5a6, coatColor: 0x7f8c8d, hairColor: 0xbdc3c7, skinColor: 0xedcbb0,
     patrolPoints: [
-      { col: 68, row: 8 }, { col: 65, row: 12 }, { col: 60, row: 10 }
+      { col: 68, row: 8 }, { col: 65, row: 10 }, { col: 70, row: 6 }
     ],
     schedule: [],
     missionIds: [],
@@ -2478,7 +2478,7 @@ export const NPC_DEFS: NPCDef[] = [
     startCol: 36, startRow: 8,
     bodyColor: 0x3498db, coatColor: 0x85c1e9, hairColor: 0x2c3e50, skinColor: 0xffceb4,
     patrolPoints: [
-      { col: 36, row: 8 }, { col: 38, row: 11 }, { col: 32, row: 8 }
+      { col: 36, row: 8 }, { col: 33, row: 11 }, { col: 28, row: 6 }
     ],
     schedule: [],
     missionIds: [],

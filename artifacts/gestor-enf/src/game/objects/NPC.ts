@@ -93,6 +93,16 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
     }).setOrigin(0.5, 1).setDepth(21).setVisible(false);
   }
 
+  /** Hide all UI elements (name label, shadow, role tag, exclamation mark).
+   *  Used for patient NPCs whose visual is embedded in the bed graphic. */
+  hideUI() {
+    this.nameLabel?.setVisible(false);
+    this.exclamationMark?.setVisible(false);
+    this.interactionBubble?.setVisible(false);
+    (this.getData('roleTag') as Phaser.GameObjects.Text | null)?.setVisible(false);
+    (this.getData('shadow') as Phaser.GameObjects.Shape | null)?.setVisible(false);
+  }
+
   setHasMission(has: boolean) {
     this.hasMission = has;
     this.exclamationMark?.setVisible(has);
@@ -104,6 +114,14 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
   }
 
   update(delta: number) {
+    // NPCs with 0 patrol points stand still — no random wander to avoid hitting walls
+    if (this.def.patrolPoints.length === 0) {
+      (this.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+      this.updateFrame(delta, false);
+      this.updateLabels();
+      return;
+    }
+
     if (this.def.patrolPoints.length < 2) {
       if (this.isWaiting) {
         this.waitTimer -= delta;
@@ -118,14 +136,13 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
         }
         if (this.waitTimer <= 0) {
           this.isWaiting = false;
-          // Pick a random nearby spot within 4 tiles radius
+          // Pick a random nearby spot — stay within ±1 tile to avoid crossing room walls
           const col = Math.floor(this.x / TILE_SIZE);
           const row = Math.floor(this.y / TILE_SIZE);
-          let targetCol = col + Phaser.Math.Between(-2, 2);
-          let targetRow = row + Phaser.Math.Between(-2, 2);
-          // Keep it on map roughly
-          targetCol = Phaser.Math.Clamp(targetCol, 1, 74);
-          targetRow = Phaser.Math.Clamp(targetRow, 1, 48);
+          let targetCol = col + Phaser.Math.Between(-1, 1);
+          let targetRow = row + Phaser.Math.Between(-1, 1);
+          targetCol = Phaser.Math.Clamp(targetCol, 2, 73);
+          targetRow = Phaser.Math.Clamp(targetRow, 2, 47);
           this.def.patrolPoints = [{col, row}, {col: targetCol, row: targetRow}];
           this.waypointIdx = 1;
         } else {
