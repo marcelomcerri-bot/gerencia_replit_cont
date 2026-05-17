@@ -109,19 +109,18 @@ export class GameScene extends Phaser.Scene {
 
   private buildWalls() {
     this.wallLayer = this.physics.add.staticGroup();
+    // Create one physics body per wall/garden tile.
+    // NOTE: Phaser 3 StaticBody.refreshBody() uses frame.realWidth (not displayWidth),
+    // so setDisplaySize+refreshBody cannot reliably resize merged rectangles.
+    // Per-tile bodies always match the 'pixel' texture size (TILE_SIZE × TILE_SIZE)
+    // and are guaranteed to produce correct, gap-free collision coverage.
     for (let row = 0; row < MAP_ROWS; row++) {
-      let startCol = -1;
-      for (let col = 0; col <= MAP_COLS; col++) {
-        const isBlocked = col < MAP_COLS && (this.mapData[row][col] === TILE_ID.WALL || this.mapData[row][col] === TILE_ID.GARDEN);
-        if (isBlocked && startCol === -1) {
-          startCol = col;
-        } else if (!isBlocked && startCol !== -1) {
-          const len = col - startCol;
-          const wx = (startCol + len / 2) * TILE_SIZE;
-          const wy = (row + 0.5) * TILE_SIZE;
-          const body = this.wallLayer.create(wx, wy, 'pixel') as Phaser.Physics.Arcade.Image;
-          body.setVisible(false).setDisplaySize(len * TILE_SIZE, TILE_SIZE).refreshBody();
-          startCol = -1;
+      for (let col = 0; col < MAP_COLS; col++) {
+        if (this.mapData[row][col] === TILE_ID.WALL || this.mapData[row][col] === TILE_ID.GARDEN) {
+          const cx = (col + 0.5) * TILE_SIZE;
+          const cy = (row + 0.5) * TILE_SIZE;
+          const img = this.wallLayer.create(cx, cy, 'pixel') as Phaser.Physics.Arcade.Image;
+          img.setVisible(false).refreshBody();
         }
       }
     }
@@ -373,9 +372,20 @@ export class GameScene extends Phaser.Scene {
   }
 
   private addPropCollision(bx: number, by: number, w: number, h: number) {
-     if (!this.propColliders) return;
-     const body = this.propColliders.create(bx + w/2, by + h/2, 'pixel') as Phaser.Physics.Arcade.Image;
-     body.setVisible(false).setDisplaySize(w, h).refreshBody();
+    if (!this.propColliders) return;
+    const cx = bx + w / 2;
+    const cy = by + h / 2;
+    const img = this.propColliders.create(cx, cy, 'pixel') as Phaser.Physics.Arcade.Image;
+    img.setVisible(false);
+    // refreshBody() would reset to frame size (32×32). Set StaticBody dimensions directly.
+    const sb = img.body as Phaser.Physics.Arcade.StaticBody;
+    sb.x = bx;
+    sb.y = by;
+    sb.width = w;
+    sb.height = h;
+    sb.halfWidth = w / 2;
+    sb.halfHeight = h / 2;
+    sb.updateCenter();
   }
 
   // Draw enhanced props

@@ -1,0 +1,76 @@
+Você precisa refatorar completamente o sistema de geração e posicionamento de mapas do jogo hospitalar 2D. Atualmente os objetos estão sendo colocados aleatoriamente, bloqueando entradas, corredores e áreas importantes de circulação. Existem também NPCs invisíveis, problemas de profundidade/renderização e salas impossíveis de navegar.
+
+Reestruture TODO o sistema de layout, colisão e posicionamento usando regras globais e inteligentes de organização espacial.
+
+REQUISITOS OBRIGATÓRIOS:
+
+1. SISTEMA GLOBAL DE POSICIONAMENTO
+
+* Todo mapa deve seguir um grid lógico e organizado.
+* Nenhum objeto pode nascer sobre:
+  • portas
+  • pontos de spawn
+  • corredores principais
+  • áreas de transição
+* Crie uma “Safe Spawn Zone” universal:
+  • os 3 tiles à frente de qualquer entrada devem permanecer SEMPRE vazios
+  • nenhum objeto, NPC ou colisão pode ocupar essa área
+
+2. ORGANIZAÇÃO AUTOMÁTICA DOS MAPAS
+
+* Objetos grandes (camas, armários, mesas, balcões, equipamentos hospitalares) devem ser posicionados preferencialmente encostados nas paredes.
+* Nunca coloque objetos grandes no centro das salas.
+* O centro das salas deve funcionar como área de circulação.
+* Crie corredores livres com no mínimo 2 tiles de largura.
+* Objetos relacionados devem permanecer agrupados:
+  • cadeira ao lado da cama
+  • monitor próximo da cama
+  • suporte de soro próximo do paciente
+* Nunca espalhe objetos aleatoriamente pelo mapa.
+
+3. REESTRUTURAÇÃO VISUAL DAS SALAS
+
+* Faça os mapas parecerem hospitais reais e funcionais.
+* Organize recepção, enfermarias, consultórios e corredores de maneira limpa.
+* Evite excesso de objetos decorativos.
+* Reduza poluição visual.
+* Mantenha caminhos claros para movimentação do jogador e dos NPCs.
+
+4. CORREÇÃO GLOBAL DE COLISÃO
+
+* Corrija paredes invisíveis.
+* Corrija tiles bloqueados incorretamente.
+* O jogador deve conseguir entrar e sair de qualquer sala normalmente.
+* Nenhum NPC pode bloquear permanentemente uma passagem.
+* A interação com tecla “E” deve funcionar sem travar movimentação.
+
+5. CORREÇÃO DOS NPCS INVISÍVEIS
+
+* Corrija o sistema de renderização usando Y-Sorting global.
+* Jogador e NPCs devem sempre aparecer acima do chão.
+* Nenhum sprite pode renderizar abaixo dos tiles.
+* Corrija possíveis problemas de:
+  • zIndex
+  • layer order
+  • depth sorting
+  • sprite loading
+  • sprite sheet path
+
+6. SISTEMA UNIVERSAL DE LAYOUT
+
+* Refatore o gerador de mapas inteiro para seguir essas regras automaticamente em TODOS os cenários do jogo.
+* Novos mapas criados futuramente devem herdar automaticamente essa lógica organizada.
+* Priorize acessibilidade, circulação e legibilidade visual.
+
+7. RESULTADO ESPERADO
+   O jogo deve ficar:
+
+* organizado
+* navegável
+* sem objetos bloqueando portas
+* sem NPCs invisíveis
+* com corredores funcionais
+* com aparência profissional de hospital
+* com distribuição inteligente de móveis e entidades
+
+Refatore o código de posicionamento, geração procedural, colisão e renderização do projeto inteiro aplicando essas melhorias globalmente.
