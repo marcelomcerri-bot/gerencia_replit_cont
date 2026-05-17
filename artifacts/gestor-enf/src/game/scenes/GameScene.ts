@@ -235,6 +235,20 @@ export class GameScene extends Phaser.Scene {
            this.ambientGfx.fillRect(bx, FACE_Y + 32, TILE_SIZE, 3);
         }
 
+        // ── Paint south-facing corridor walls to match corridor floor ──────────
+        // Wall tiles that have a corridor tile directly above them appear as a
+        // large gray block when the player looks south inside the corridor.
+        // Painting them with the corridor floor colour (white-ish) hides the
+        // gray tilemap base; the physics wall (buildWalls) still blocks movement.
+        if (isWall && r > 0 && this.mapData[r-1][c] === TILE_ID.CORRIDOR) {
+          this.ambientGfx.fillStyle(0xf8fafc, 1);   // corridor floor colour
+          this.ambientGfx.fillRect(bx, by, TILE_SIZE, TILE_SIZE);
+          // Faint grid seam so it doesn't look completely flat
+          this.ambientGfx.fillStyle(0x000000, 0.04);
+          this.ambientGfx.fillRect(bx, by, TILE_SIZE, 1);
+          this.ambientGfx.fillRect(bx, by, 1, TILE_SIZE);
+        }
+
         if (tid === TILE_ID.GARDEN) {
            if ((c % 4 === 0 && r % 4 === 0) && Math.random() < 0.6) {
              this.drawTree(propsGfx, bx, by);
@@ -242,22 +256,26 @@ export class GameScene extends Phaser.Scene {
              this.drawBush(propsGfx, bx, by);
            }
         } else if (tid === TILE_ID.CORRIDOR) {
-           // Floor circulation routing lines (Red, Blue, Green stripes)
-           if (r === 16 || r === 27) {
-               // main horizontal arteries
-               this.ambientGfx.fillStyle(0xe74c3c, 0.25); // Red to emergency
+           // True horizontal corridor rows (between wings) vs door-gap rows (in walls)
+           const isHorizCorridor = (r >= 14 && r <= 15) || (r >= 28 && r <= 29);
+
+           // Floor circulation routing lines — only in the actual corridor rows
+           if (isHorizCorridor) {
+               // Horizontal arteries run the full width of each corridor row
+               this.ambientGfx.fillStyle(0xe74c3c, 0.20); // Red — Emergency
                this.ambientGfx.fillRect(bx, by + 12, TILE_SIZE, 2);
-               this.ambientGfx.fillStyle(0x3498db, 0.25); // Blue to Outpatient
+               this.ambientGfx.fillStyle(0x3498db, 0.20); // Blue — Outpatient
                this.ambientGfx.fillRect(bx, by + 16, TILE_SIZE, 2);
-               this.ambientGfx.fillStyle(0x2ecc71, 0.25); // Green to ward
+               this.ambientGfx.fillStyle(0x2ecc71, 0.20); // Green — Ward
                this.ambientGfx.fillRect(bx, by + 20, TILE_SIZE, 2);
            }
-           if (c === 31 || c === 45) { // main vertical arteries
-               this.ambientGfx.fillStyle(0xe74c3c, 0.25);
+           // Vertical arteries only in non-horizontal-corridor tiles (avoids crossing lines)
+           if ((c === 31 || c === 45) && !isHorizCorridor) {
+               this.ambientGfx.fillStyle(0xe74c3c, 0.20);
                this.ambientGfx.fillRect(bx + 12, by, 2, TILE_SIZE);
-               this.ambientGfx.fillStyle(0x3498db, 0.25);
+               this.ambientGfx.fillStyle(0x3498db, 0.20);
                this.ambientGfx.fillRect(bx + 16, by, 2, TILE_SIZE);
-               this.ambientGfx.fillStyle(0x2ecc71, 0.25);
+               this.ambientGfx.fillStyle(0x2ecc71, 0.20);
                this.ambientGfx.fillRect(bx + 20, by, 2, TILE_SIZE);
            }
 
@@ -268,13 +286,6 @@ export class GameScene extends Phaser.Scene {
            const hasWallBottom = r < MAP_ROWS - 1 && this.mapData[r+1][c] === TILE_ID.WALL;
 
            if (hasWallLeft && hasWallRight && !hasWallTop && !hasWallBottom) {
-             // Vertical automatic sliding glass doors
-             const isDoubleDoorGap = this.mapData[r][c-1] !== TILE_ID.WALL || this.mapData[r][c+1] !== TILE_ID.WALL; // we can identify double wide corridors
-             
-             // Draw dark glass sliding door on the boundary above
-             // Because it's a corridor going down, we render the header spanning the tile
-             const FACE_Y = by + TILE_SIZE; // It aligns with the wall below
-             
              // Top track
              this.ambientGfx.fillStyle(0x7f8c8d, 1);
              this.ambientGfx.fillRect(bx, by, TILE_SIZE, 4);
@@ -285,7 +296,6 @@ export class GameScene extends Phaser.Scene {
              this.ambientGfx.fillStyle(0x38bdf8, 0.5);
              this.ambientGfx.fillRect(bx + 4, by + 4, 2, 28); // left pane edge reflection
              this.ambientGfx.fillRect(bx + TILE_SIZE - 6, by + 4, 2, 28); // right pane edge reflection
-             
              // Bottom track on floor
              this.ambientGfx.fillStyle(0x95a5a6, 0.6);
              this.ambientGfx.fillRect(bx, by + 30, TILE_SIZE, 2);
@@ -297,8 +307,8 @@ export class GameScene extends Phaser.Scene {
              this.ambientGfx.fillRect(bx + 4, by, 8, TILE_SIZE); // top pane
            }
 
-           // Hanging sector sign in wide horizontal corridors
-           if (r === 16 || r === 27) { // The main horizontal corridors
+           // Hanging sector sign — only in the first tile row of each horizontal corridor
+           if (r === 14 || r === 28) {
               if (c % 15 === 0) {
                  this.ambientGfx.fillStyle(0x34495e, 1);
                  this.ambientGfx.fillRoundedRect(bx + 4, by - 16, 24, 8, 2);
@@ -312,25 +322,21 @@ export class GameScene extends Phaser.Scene {
               }
            }
 
-           // Hand sanitizer on north walls
+           // Hand sanitizer on tiles immediately below a north wall
            if (this.mapData[r-1] && this.mapData[r-1][c] === TILE_ID.WALL && c % 4 === 0) {
               this.drawHandSanitizer(propsGfx, bx, by);
            }
-           // Carefully place a few benches against bottom walls (r+1 is wall) avoids clipping with wall fronts
-           if (c % 8 === 0 && r < MAP_ROWS - 1 && this.mapData[r+1][c] === TILE_ID.WALL) {
+           // Bench against south walls (tile below is wall) — only in actual corridor rows
+           if (isHorizCorridor && c % 8 === 0 && r < MAP_ROWS - 1 && this.mapData[r+1][c] === TILE_ID.WALL) {
              this.drawBench(propsGfx, bx, by);
            }
-           
-           // Occasionally add a trash can to corridors
+           // Trash can
            if (c % 11 === 0 && (this.isNearWall(r, c) && Math.random() < 0.5)) {
              this.drawTrashCan(propsGfx, bx, by);
            }
-
-           // Occasionally add a folding screen (biombo) in larger corridors
-           if (r === 16 || r === 27) {
-             if (c % 18 === 0 && Math.random() < 0.4) {
-               this.drawBiombo(propsGfx, bx, by);
-             }
+           // Biombo — only in actual wide corridor rows
+           if ((r === 14 || r === 28) && c % 18 === 0 && Math.random() < 0.4) {
+             this.drawBiombo(propsGfx, bx, by);
            }
         }
       }
