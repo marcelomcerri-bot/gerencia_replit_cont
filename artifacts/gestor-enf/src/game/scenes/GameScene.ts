@@ -23,6 +23,7 @@ export class GameScene extends Phaser.Scene {
   private eKey!: Phaser.Input.Keyboard.Key;
   private mKey!: Phaser.Input.Keyboard.Key;
   private escKey!: Phaser.Input.Keyboard.Key;
+  private _escDomListener: ((e: KeyboardEvent) => void) | null = null;
 
   private timeAccum = 0;
   private currentRoom: number = TILE_ID.CORRIDOR;
@@ -62,6 +63,21 @@ export class GameScene extends Phaser.Scene {
     this.spawnNPCs();
     this.setupInput();
     this.setupCamera();
+
+    // DOM-level ESC listener — captures ESC reliably even without canvas focus
+    this._escDomListener = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !this.scene.isPaused()) {
+        e.preventDefault();
+        this.pauseGame();
+      }
+    };
+    document.addEventListener('keydown', this._escDomListener);
+    this.events.once('shutdown', () => {
+      if (this._escDomListener) {
+        document.removeEventListener('keydown', this._escDomListener!);
+        this._escDomListener = null;
+      }
+    });
 
     this.scene.launch(SCENES.HUD);
     this.cameras.main.fadeIn(700);
@@ -231,6 +247,23 @@ export class GameScene extends Phaser.Scene {
              this.ambientGfx.fillStyle(0x000000, 0.12);
              this.ambientGfx.fillRect(bx, FACE_Y + 32, TILE_SIZE, 3);
            }
+        }
+
+        // ── Horizontal wall top-edge highlight (seen from inside room above) ──
+        // When the player looks south toward a wall from within a room, draw a
+        // strong shadow + teal stripe at the top of the wall tile so the boundary
+        // is clearly visible and not confused with a floor tile.
+        if (isWall && r > 0) {
+          const aboveTid = this.mapData[r-1][c];
+          const isRoomAbove = aboveTid !== TILE_ID.WALL && aboveTid !== TILE_ID.GARDEN && aboveTid !== TILE_ID.CORRIDOR;
+          if (isRoomAbove) {
+            this.ambientGfx.fillStyle(0x0f172a, 0.5);
+            this.ambientGfx.fillRect(bx, by, TILE_SIZE, 6);
+            this.ambientGfx.fillStyle(0x0ea5e9, 1);
+            this.ambientGfx.fillRect(bx, by + 6, TILE_SIZE, 3);
+            this.ambientGfx.fillStyle(0xffffff, 0.6);
+            this.ambientGfx.fillRect(bx, by + 9, TILE_SIZE, 1);
+          }
         }
 
         // ── Hide south-facing corridor walls ─────────────────────────────────
@@ -1771,8 +1804,6 @@ export class GameScene extends Phaser.Scene {
     this.eKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.mKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.M);
     this.escKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
-
-    this.escKey.on('down', () => this.pauseGame());
   }
 
   public pauseGame() {
@@ -1815,8 +1846,15 @@ export class GameScene extends Phaser.Scene {
     });
     if (available.length === 0) { this.scheduleCrisis(); return; }
 
-    const event = available[Phaser.Math.Between(0, available.length - 1)];
-    
+    const rawEvent = available[Phaser.Math.Between(0, available.length - 1)];
+    // Shuffle choices so the correct answer is never predictably the first option
+    const shuffledChoices = [...rawEvent.choices];
+    for (let i = shuffledChoices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledChoices[i], shuffledChoices[j]] = [shuffledChoices[j], shuffledChoices[i]];
+    }
+    const event = { ...rawEvent, choices: shuffledChoices };
+
     this.isCrisisOpen = true;
     this.lastActivity = `Respondendo a uma crise: ${event.title}`;
     const hud = this.scene.get('HUDScene') as any;
@@ -1890,9 +1928,9 @@ export class GameScene extends Phaser.Scene {
     const delta = Math.min(rawDelta, 40);
     const vpad = this.getVPad();
 
-    // Check menu key early (even if dialog/crisis is open, though pause usually blocks this, let's keep it safe)
-    if (Phaser.Input.Keyboard.JustDown(this.escKey) || vpad.menuJustPressed) {
-      if (vpad.menuJustPressed) vpad.menuJustPressed = false;
+    // Virtual pad menu button (DOM-level ESC is handled by _escDomListener)
+    if (vpad.menuJustPressed) {
+      vpad.menuJustPressed = false;
       this.pauseGame();
     }
 

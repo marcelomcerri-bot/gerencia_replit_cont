@@ -216,11 +216,7 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
         else if (Math.random() < 0.2) this.direction = 'down';
         else if (Math.random() < 0.2) this.direction = 'left';
         else this.direction = 'right';
-
-        if (Math.random() < 0.2) {
-          this.interactionBubble?.setText(Math.random() > 0.5 ? '...' : '?').setVisible(true);
-          this.interactionBubbleTimer = 2000;
-        }
+        // No idle bubbles — they confused players into thinking objects were interactive
       } else {
         const typeMap: Record<string, string[]> = {
           'work': ['💻', '📋', '📁'],

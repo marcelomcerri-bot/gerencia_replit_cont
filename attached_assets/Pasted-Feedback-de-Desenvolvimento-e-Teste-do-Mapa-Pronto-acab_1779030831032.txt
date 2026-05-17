@@ -1,0 +1,28 @@
+Feedback de Desenvolvimento e Teste do Mapa
+Pronto, acabei de ver o mapa todo e acho que já falei com todos os NPCs. Seguem os pontos observados, bugs e comportamentos do sistema para correção e ajuste:
+
+1. Interface e Menus
+Botão ESC: O botão de ESC ainda não está funcionando, ou seja, ele não abre o menu do jogo.
+
+Lista de Missões: Agora já está sendo possível abrir o mapa de missões (a lista de missões), porém nenhuma delas está disponível para ser feita.
+
+2. Comportamento dos NPCs e Diálogos
+NPCs com Interrogação (?): Os bonequinhos que possuem uma interrogação na cabeça têm três diálogos diferentes que ficam se repetindo. No entanto, o ícone de exclamação (!) nunca some da cabeça deles.
+
+Animação de Caminhada: O aparecimento dos bonequinhos e o jeito como eles estão andando ficou bem agradável e bonitinho.
+
+3. Mecânica de Quizzes e Ícones pelo Mapa
+Padrão de Respostas do Quiz: Nos quizzes que aparecem aleatoriamente na tela, a resposta correta é sempre a alternativa de cima. Nunca é a do meio e nunca é a de baixo.
+
+Ícones Voláteis: Existem alguns ícones pequenos aparecendo pelo mapa (como pontos de interrogação, três pontinhos e quadradinhos). Quando o jogador se aproxima deles, eles simplesmente somem e não executam nenhuma ação.
+
+4. Sistema de Quests Específicas
+Quest da Recepcionista: Havia uma quest com a recepcionista onde errei a resposta. Após esse erro, a missão sumiu e não aparece mais, mesmo voltando lá em momentos diferentes para testar.
+
+5. Mecânica de Ambientes (Copa e Nutrição)
+Status do Personagem: Ao entrar na Copa e Nutrição — onde fica a nutricionista Clara —, a mecânica de recuperar energia e diminuir o estresse está funcionando perfeitamente conforme o esperado.
+
+6. Identidade Visual e Ambientação
+Paleta de Cores e Paredes: Em comparação com a versão anterior de paredes escuras, a versão atual (mais clara) traz uma vibe maior de hospital. Porém, visualmente, a versão escura era mais agradável.
+
+Perspectiva das Paredes: Nesta versão atual, as paredes verticais estão bem fáceis de identificar, mas as paredes horizontais estão um pouco confusas e difíceis de distinguir.
