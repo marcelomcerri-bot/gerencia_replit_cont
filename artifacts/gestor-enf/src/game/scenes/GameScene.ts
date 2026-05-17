@@ -176,77 +176,75 @@ export class GameScene extends Phaser.Scene {
                                          this.mapData[r][c-1] === TILE_ID.WALL && this.mapData[r][c+1] === TILE_ID.WALL;
 
         if (isWall && (hasFloorBelow || isHorizontalIntersection)) {
-           // Draw front face projecting downward into the tile below.
            const FACE_Y = by + TILE_SIZE;
-           const FACE_H = 30; // Leave 2px as natural baseboard at bottom
+           // When the face would project into a corridor we draw ONLY a thin
+           // teal accent line — no 30 px beige block that steals corridor space.
+           const faceInCorridor = belowTid === TILE_ID.CORRIDOR;
 
-           // Base wall face (darker linen white to indicate vertical shadow)
-           this.ambientGfx.fillStyle(0xd2ccc1, 1);
-           this.ambientGfx.fillRect(bx, FACE_Y, TILE_SIZE, FACE_H);
-           
-           // Blue wainscoting horizontal stripe (classic hospital)
-           this.ambientGfx.fillStyle(0x0ea5e9, 1);
-           this.ambientGfx.fillRect(bx, FACE_Y + 16, TILE_SIZE, 3);
-           
-           // White trim above and below stripe
-           this.ambientGfx.fillStyle(0xffffff, 1);
-           this.ambientGfx.fillRect(bx, FACE_Y + 14, TILE_SIZE, 2);
-           this.ambientGfx.fillRect(bx, FACE_Y + 19, TILE_SIZE, 2);
+           if (faceInCorridor) {
+             // Thin teal baseboard at wall/corridor boundary (3 px, no block)
+             this.ambientGfx.fillStyle(0x0ea5e9, 0.85);
+             this.ambientGfx.fillRect(bx, FACE_Y, TILE_SIZE, 3);
+             this.ambientGfx.fillStyle(0xffffff, 0.5);
+             this.ambientGfx.fillRect(bx, FACE_Y + 3, TILE_SIZE, 1);
+           } else {
+             // Full 30 px decorative wainscoting face for room tiles
+             const FACE_H = 30;
+             this.ambientGfx.fillStyle(0xd2ccc1, 1);
+             this.ambientGfx.fillRect(bx, FACE_Y, TILE_SIZE, FACE_H);
 
-           // Random wall details (posters, electric outlets, extinguishers)
-           const wallType = c % 13; // deterministic based on column
-           if (wallType === 3) {
-             // Fire extinguisher
-             this.ambientGfx.fillStyle(0xe74c3c, 1);
-             this.ambientGfx.fillRoundedRect(bx + 12, FACE_Y + 4, 8, 12, 2);
-             this.ambientGfx.fillStyle(0xc0392b, 1);
-             this.ambientGfx.fillRect(bx + 14, FACE_Y + 5, 4, 3); // label
-             this.ambientGfx.fillStyle(0x000000, 1);
-             this.ambientGfx.fillRect(bx + 12, FACE_Y + 2, 8, 2); // nozzle/handle
-           } else if (wallType === 7) {
-             // Informational poster
+             this.ambientGfx.fillStyle(0x0ea5e9, 1);
+             this.ambientGfx.fillRect(bx, FACE_Y + 16, TILE_SIZE, 3);
              this.ambientGfx.fillStyle(0xffffff, 1);
-             this.ambientGfx.fillRect(bx + 8, FACE_Y + 2, 16, 12);
-             this.ambientGfx.fillStyle(0x3498db, 1);
-             this.ambientGfx.fillRect(bx + 10, FACE_Y + 4, 12, 2);
-             this.ambientGfx.fillStyle(0xbdc3c7, 1);
-             this.ambientGfx.fillRect(bx + 10, FACE_Y + 7, 12, 1);
-             this.ambientGfx.fillRect(bx + 10, FACE_Y + 9, 8, 1);
-             this.ambientGfx.fillRect(bx + 10, FACE_Y + 11, 10, 1);
-           } else if (wallType === 10) {
-             // Wall electrical outlet
-             this.ambientGfx.fillStyle(0xecf0f1, 1);
-             this.ambientGfx.fillRect(bx + 14, FACE_Y + 24, 6, 4);
-             this.ambientGfx.fillStyle(0x000000, 1);
-             this.ambientGfx.fillRect(bx + 15, FACE_Y + 25, 2, 1);
-             this.ambientGfx.fillRect(bx + 18, FACE_Y + 25, 2, 1);
+             this.ambientGfx.fillRect(bx, FACE_Y + 14, TILE_SIZE, 2);
+             this.ambientGfx.fillRect(bx, FACE_Y + 19, TILE_SIZE, 2);
+
+             const wallType = c % 13;
+             if (wallType === 3) {
+               this.ambientGfx.fillStyle(0xe74c3c, 1);
+               this.ambientGfx.fillRoundedRect(bx + 12, FACE_Y + 4, 8, 12, 2);
+               this.ambientGfx.fillStyle(0xc0392b, 1);
+               this.ambientGfx.fillRect(bx + 14, FACE_Y + 5, 4, 3);
+               this.ambientGfx.fillStyle(0x000000, 1);
+               this.ambientGfx.fillRect(bx + 12, FACE_Y + 2, 8, 2);
+             } else if (wallType === 7) {
+               this.ambientGfx.fillStyle(0xffffff, 1);
+               this.ambientGfx.fillRect(bx + 8, FACE_Y + 2, 16, 12);
+               this.ambientGfx.fillStyle(0x3498db, 1);
+               this.ambientGfx.fillRect(bx + 10, FACE_Y + 4, 12, 2);
+               this.ambientGfx.fillStyle(0xbdc3c7, 1);
+               this.ambientGfx.fillRect(bx + 10, FACE_Y + 7, 12, 1);
+               this.ambientGfx.fillRect(bx + 10, FACE_Y + 9, 8, 1);
+               this.ambientGfx.fillRect(bx + 10, FACE_Y + 11, 10, 1);
+             } else if (wallType === 10) {
+               this.ambientGfx.fillStyle(0xecf0f1, 1);
+               this.ambientGfx.fillRect(bx + 14, FACE_Y + 24, 6, 4);
+               this.ambientGfx.fillStyle(0x000000, 1);
+               this.ambientGfx.fillRect(bx + 15, FACE_Y + 25, 2, 1);
+               this.ambientGfx.fillRect(bx + 18, FACE_Y + 25, 2, 1);
+             }
+
+             this.ambientGfx.fillStyle(0x000000, 0.03);
+             this.ambientGfx.fillRect(bx, FACE_Y, 1, FACE_H);
+             this.ambientGfx.fillStyle(0x94a3b8, 1);
+             this.ambientGfx.fillRect(bx, FACE_Y + 28, TILE_SIZE, 4);
+             this.ambientGfx.fillStyle(0x000000, 0.12);
+             this.ambientGfx.fillRect(bx, FACE_Y + 32, TILE_SIZE, 3);
            }
-
-           // Wall panel seam (optional, adds detail)
-           this.ambientGfx.fillStyle(0x000000, 0.03);
-           this.ambientGfx.fillRect(bx, FACE_Y, 1, FACE_H);
-
-           // Baseboard (light gray)
-           this.ambientGfx.fillStyle(0x94a3b8, 1);
-           this.ambientGfx.fillRect(bx, FACE_Y + 28, TILE_SIZE, 4);
-
-           // Floor shadow
-           this.ambientGfx.fillStyle(0x000000, 0.12);
-           this.ambientGfx.fillRect(bx, FACE_Y + 32, TILE_SIZE, 3);
         }
 
-        // ── Paint south-facing corridor walls to match corridor floor ──────────
-        // Wall tiles that have a corridor tile directly above them appear as a
-        // large gray block when the player looks south inside the corridor.
-        // Painting them with the corridor floor colour (white-ish) hides the
-        // gray tilemap base; the physics wall (buildWalls) still blocks movement.
+        // ── Hide south-facing corridor walls ─────────────────────────────────
+        // Wall tiles with corridor directly above show as gray blocks from
+        // inside the corridor. Paint them corridor-floor colour so they blend in.
+        // The physics wall (buildWalls) still prevents the player from passing.
         if (isWall && r > 0 && this.mapData[r-1][c] === TILE_ID.CORRIDOR) {
-          this.ambientGfx.fillStyle(0xf8fafc, 1);   // corridor floor colour
+          this.ambientGfx.fillStyle(0xf8fafc, 1);
           this.ambientGfx.fillRect(bx, by, TILE_SIZE, TILE_SIZE);
-          // Faint grid seam so it doesn't look completely flat
-          this.ambientGfx.fillStyle(0x000000, 0.04);
-          this.ambientGfx.fillRect(bx, by, TILE_SIZE, 1);
-          this.ambientGfx.fillRect(bx, by, 1, TILE_SIZE);
+          // Match the thin teal accent so the corridor looks symmetric
+          this.ambientGfx.fillStyle(0x0ea5e9, 0.85);
+          this.ambientGfx.fillRect(bx, by, TILE_SIZE, 3);
+          this.ambientGfx.fillStyle(0xffffff, 0.5);
+          this.ambientGfx.fillRect(bx, by + 3, TILE_SIZE, 1);
         }
 
         if (tid === TILE_ID.GARDEN) {
@@ -258,26 +256,6 @@ export class GameScene extends Phaser.Scene {
         } else if (tid === TILE_ID.CORRIDOR) {
            // True horizontal corridor rows (between wings) vs door-gap rows (in walls)
            const isHorizCorridor = (r >= 14 && r <= 15) || (r >= 28 && r <= 29);
-
-           // Floor circulation routing lines — only in the actual corridor rows
-           if (isHorizCorridor) {
-               // Horizontal arteries run the full width of each corridor row
-               this.ambientGfx.fillStyle(0xe74c3c, 0.20); // Red — Emergency
-               this.ambientGfx.fillRect(bx, by + 12, TILE_SIZE, 2);
-               this.ambientGfx.fillStyle(0x3498db, 0.20); // Blue — Outpatient
-               this.ambientGfx.fillRect(bx, by + 16, TILE_SIZE, 2);
-               this.ambientGfx.fillStyle(0x2ecc71, 0.20); // Green — Ward
-               this.ambientGfx.fillRect(bx, by + 20, TILE_SIZE, 2);
-           }
-           // Vertical arteries only in non-horizontal-corridor tiles (avoids crossing lines)
-           if ((c === 31 || c === 45) && !isHorizCorridor) {
-               this.ambientGfx.fillStyle(0xe74c3c, 0.20);
-               this.ambientGfx.fillRect(bx + 12, by, 2, TILE_SIZE);
-               this.ambientGfx.fillStyle(0x3498db, 0.20);
-               this.ambientGfx.fillRect(bx + 16, by, 2, TILE_SIZE);
-               this.ambientGfx.fillStyle(0x2ecc71, 0.20);
-               this.ambientGfx.fillRect(bx + 20, by, 2, TILE_SIZE);
-           }
 
            // Automatic Doors on gaps in horizontal walls
            const hasWallLeft = c > 0 && this.mapData[r][c-1] === TILE_ID.WALL;
