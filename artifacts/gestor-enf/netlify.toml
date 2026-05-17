@@ -1,6 +1,7 @@
 [build]
-  command = "npm run build"
+  command = "pnpm --filter @workspace/gestor-enf run build"
   publish = "dist/public"
+  environment = { PORT = "3000", BASE_PATH = "/" }
 
 [[redirects]]
   from = "/*"
